@@ -26,9 +26,9 @@ public sealed class CoffeeController : ControllerBase
     [ProducesResponseType(typeof(BrewResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status418ImATeapot)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-    public IActionResult BrewCoffee()
+    public async Task<IActionResult> BrewCoffee(CancellationToken ct)
     {
-        var result = _machine.Brew();
+        var result = await _machine.Brew();
 
         switch (result.Outcome)
         {

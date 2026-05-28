@@ -10,5 +10,5 @@ public interface ICoffeeMachineService
     /// <summary>
     /// Evaluates all business rules and returns the appropriate result.
     /// </summary>
-    BrewResult Brew();
+    Task<BrewResult> Brew(CancellationToken ct = default);
 }

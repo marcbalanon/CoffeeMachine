@@ -4,7 +4,7 @@ using Xunit;
 
 namespace CoffeeMachine.Tests.Unit;
 
-public sealed class BrewCounterServiceTests
+public class BrewCounterServiceTests
 {
     [Fact]
     public void Increment_StartsAt1_OnFirstCall()

@@ -1,4 +1,5 @@
 using CoffeeMachine.Api.Interfaces;
+using CoffeeMachine.Api.Models;
 using CoffeeMachine.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,13 @@ builder.Services.AddSingleton<IBrewCounterService, BrewCounterService>();
 
 // Singleton clock.
 builder.Services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
+
+// Weather options bound from appsettings.json 
+builder.Services.Configure<WeatherOptions>(
+    builder.Configuration.GetSection(WeatherOptions.Section));
+
+// Weather Service
+builder.Services.AddHttpClient<IWeatherService, OpenWeatherMapService>();
 
 // Coffee machine service 
 builder.Services.AddTransient<ICoffeeMachineService, CoffeeMachineService>();

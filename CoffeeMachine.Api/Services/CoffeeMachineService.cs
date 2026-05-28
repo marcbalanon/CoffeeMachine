@@ -1,6 +1,6 @@
 using CoffeeMachine.Api.Interfaces;
 using CoffeeMachine.Api.Models;
-using System.Reflection.Metadata.Ecma335;
+using Microsoft.Extensions.Options;
 
 namespace CoffeeMachine.Api.Services;
 
@@ -16,16 +16,22 @@ public sealed class CoffeeMachineService : ICoffeeMachineService
 {
     private readonly IBrewCounterService _counter;
     private readonly IDateTimeProvider _clock;
+    private readonly IWeatherService _weather;
+    private readonly WeatherOptions _weatherOpts;
 
     public CoffeeMachineService(
         IBrewCounterService counter,
-        IDateTimeProvider clock)
+        IDateTimeProvider clock,
+        IWeatherService weather,
+        IOptions<WeatherOptions> weatherOpts)
     {
         _counter = counter;
-        _clock   = clock;
+        _clock = clock;
+        _weather = weather;
+        _weatherOpts = weatherOpts.Value;
     }
 
-    public BrewResult Brew()
+    public async Task<BrewResult> Brew(CancellationToken ct = default)
     {
         var now   = _clock.UtcNow;
         var count = _counter.Increment();   // always increment regardless of outcome
@@ -39,11 +45,15 @@ public sealed class CoffeeMachineService : ICoffeeMachineService
             return new BrewResult(BrewOutcome.OutOfCoffee);
 
         // Rule 1
-        var response = new BrewResponse(
-            Message:  "Your piping hot coffee is ready",
-            Prepared: now
-        );
-        return new BrewResult(BrewOutcome.Ready, response);
+        var message = await BrewedCoffeeReady(ct);
+        return new BrewResult(BrewOutcome.Ready, new BrewResponse(message, now));
+    }
+    private async Task<string> BrewedCoffeeReady(CancellationToken ct)
+    {
+        var temp = await _weather.GetCurrentTemperatureCelsiusAsync(ct);
+
+        var message = (temp.HasValue && temp.Value > _weatherOpts.HotThreshold) ? "Your refreshing iced coffee is ready" : "Your piping hot coffee is ready";
+        return message;
     }
 
     private static bool IsAprilFools(DateTimeOffset dt)
